@@ -1,4 +1,4 @@
-import { Pin, PinOff, MessageCircle } from 'lucide-react';
+import { Pin, PinOff, MessageCircle, LayoutDashboard } from 'lucide-react';
 import type { QueryResponse, SingleStatData, ComparisonData, DistributionData, TrendData, ListData } from '../../types';
 import { SingleStat, BarChartViz, PieChartViz, LineChartViz, RankedList } from '../Visualizations';
 
@@ -8,9 +8,21 @@ interface ResponseCardProps {
   onPin: () => void;
   onUnpin: () => void;
   onFollowUp: (query: string) => void;
+  isOnDashboard?: boolean;
+  onAddToDashboard?: () => void;
+  onRemoveFromDashboard?: () => void;
 }
 
-export function ResponseCard({ response, isPinned, onPin, onUnpin, onFollowUp }: ResponseCardProps) {
+export function ResponseCard({ 
+  response, 
+  isPinned, 
+  onPin, 
+  onUnpin, 
+  onFollowUp,
+  isOnDashboard = false,
+  onAddToDashboard,
+  onRemoveFromDashboard,
+}: ResponseCardProps) {
   const { type, title, subtitle, data, followUpSuggestions } = response;
 
   const renderVisualization = () => {
@@ -41,18 +53,35 @@ export function ResponseCard({ response, isPinned, onPin, onUnpin, onFollowUp }:
           )}
         </div>
         
-        {/* Pin button */}
-        <button
-          onClick={isPinned ? onUnpin : onPin}
-          className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
-            isPinned
-              ? 'bg-[#FCE4F2] text-[#E91E8C] hover:bg-[#F9D5E8]'
-              : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
-          }`}
-          title={isPinned ? 'Unpin this query' : 'Pin this query'}
-        >
-          {isPinned ? <PinOff className="w-5 h-5" /> : <Pin className="w-5 h-5" />}
-        </button>
+        <div className="flex items-center gap-1">
+          {/* Add to Dashboard button */}
+          {onAddToDashboard && onRemoveFromDashboard && (
+            <button
+              onClick={isOnDashboard ? onRemoveFromDashboard : onAddToDashboard}
+              className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
+                isOnDashboard
+                  ? 'bg-[#E8F4FD] text-[#2196F3] hover:bg-[#D4ECFC]'
+                  : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+              }`}
+              title={isOnDashboard ? 'Remove from dashboard' : 'Add to dashboard'}
+            >
+              <LayoutDashboard className="w-5 h-5" />
+            </button>
+          )}
+
+          {/* Pin button */}
+          <button
+            onClick={isPinned ? onUnpin : onPin}
+            className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
+              isPinned
+                ? 'bg-[#FCE4F2] text-[#E91E8C] hover:bg-[#F9D5E8]'
+                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            }`}
+            title={isPinned ? 'Unpin this query' : 'Pin this query'}
+          >
+            {isPinned ? <PinOff className="w-5 h-5" /> : <Pin className="w-5 h-5" />}
+          </button>
+        </div>
       </div>
 
       {/* Visualization */}

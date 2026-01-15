@@ -7,8 +7,10 @@ import {
   Shield, 
   Accessibility,
   ChevronRight,
-  Settings
+  Settings,
+  LayoutDashboard
 } from 'lucide-react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface SidebarItemProps {
   icon: React.ReactNode;
@@ -40,6 +42,9 @@ interface NavItem {
 }
 
 export function Sidebar() {
+  const navigate = useNavigate();
+  const location = useLocation();
+
   const mainNavItems: NavItem[] = [
     { icon: <Home className="w-5 h-5" />, label: 'Home', id: 'home' },
     { icon: <Library className="w-5 h-5" />, label: 'My library', id: 'library' },
@@ -53,9 +58,27 @@ export function Sidebar() {
     { icon: <Users className="w-5 h-5" />, label: 'Manage Teachers', id: 'teachers' },
     { icon: <ChevronRight className="w-5 h-5" />, label: 'LMS Integration', id: 'lms' },
     { icon: <BarChart3 className="w-5 h-5" />, label: 'Usage Analytics', id: 'analytics' },
+    { icon: <LayoutDashboard className="w-5 h-5" />, label: 'My Dashboard', id: 'dashboard' },
     { icon: <Shield className="w-5 h-5" />, label: 'Content Policy', id: 'policy' },
     { icon: <Accessibility className="w-5 h-5" />, label: 'Accommodations', id: 'accommodations' },
   ];
+
+  const handleNavClick = (id: string) => {
+    if (id === 'dashboard') {
+      navigate('/dashboard');
+    } else if (id === 'analytics') {
+      navigate('/results');
+    } else if (id === 'home') {
+      navigate('/');
+    }
+  };
+
+  const isActive = (id: string) => {
+    if (id === 'dashboard') return location.pathname === '/dashboard';
+    if (id === 'analytics') return location.pathname === '/results';
+    if (id === 'home') return location.pathname === '/';
+    return false;
+  };
 
   return (
     <aside className="w-64 bg-white border-r border-gray-200 flex flex-col h-screen sticky top-0">
@@ -76,7 +99,8 @@ export function Sidebar() {
             key={item.id}
             icon={item.icon}
             label={item.label}
-            active={item.id === 'admin'}
+            active={isActive(item.id)}
+            onClick={() => handleNavClick(item.id)}
           />
         ))}
       </nav>
@@ -93,7 +117,8 @@ export function Sidebar() {
                 key={item.id}
                 icon={item.icon}
                 label={item.label}
-                active={item.id === 'analytics'}
+                active={isActive(item.id)}
+                onClick={() => handleNavClick(item.id)}
               />
             ))}
           </div>

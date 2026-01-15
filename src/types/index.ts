@@ -169,3 +169,10 @@ export interface ConversationMessage {
   timestamp: Date;
 }
 
+// Dashboard Item - stores full QueryResponse for rendering on dashboard
+export interface DashboardItem {
+  id: string;
+  response: QueryResponse;
+  addedAt: Date;
+}
+

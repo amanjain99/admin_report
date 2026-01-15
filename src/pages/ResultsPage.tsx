@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Download, ChevronDown, Phone, ArrowLeft, Sparkles, ArrowUp, Trash2, MessageCircle, Loader2 } from 'lucide-react';
 import { ResponseCard } from '../components/ResponseCard';
-import { useQuery, usePinnedQueries } from '../hooks';
+import { useQuery, usePinnedQueries, useDashboard } from '../hooks';
 import { mockWaygroundData } from '../data/mockData';
 
 interface FilterDropdownProps {
@@ -28,6 +28,7 @@ export function ResultsPage() {
   const initialQuery = searchParams.get('q') || '';
   const { isLoading, conversation, submitQuery, clearConversation } = useQuery();
   const { pinnedQueries, pinQuery, unpinQuery, isPinned } = usePinnedQueries();
+  const { addToDashboard, removeFromDashboard, isOnDashboard } = useDashboard();
   const conversationEndRef = useRef<HTMLDivElement>(null);
   const hasSubmittedInitial = useRef(false);
 
@@ -163,6 +164,9 @@ export function ResultsPage() {
                     if (pinned) unpinQuery(pinned.id);
                   }}
                   onFollowUp={handleFollowUp}
+                  isOnDashboard={isOnDashboard(message.response.id)}
+                  onAddToDashboard={() => addToDashboard(message.response!)}
+                  onRemoveFromDashboard={() => removeFromDashboard(message.response!.id)}
                 />
               ) : null}
             </div>

@@ -6,12 +6,18 @@ import type {
   ComparisonData,
   DistributionData,
   TrendData,
-  ListData
+  ListData,
+  SchoolData
 } from '../types';
 
 // Generate unique ID
 function generateId(): string {
   return `query-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+}
+
+// Format large numbers with commas
+function formatNumber(num: number): string {
+  return num.toLocaleString();
 }
 
 // Pattern definitions for query matching
@@ -22,19 +28,287 @@ interface QueryPattern {
 }
 
 const queryPatterns: QueryPattern[] = [
+  // Top schools by student responses
+  {
+    patterns: [
+      /top.*schools?.*student responses?/i,
+      /schools?.*most.*student responses?/i,
+      /which schools?.*most.*responses?/i,
+      /highest.*student responses?/i,
+    ],
+    type: 'list',
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Student responses'] > 0)
+        .sort((a, b) => b['Student responses'] - a['Student responses'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Schools by Student Responses',
+        subtitle: 'Schools with highest engagement',
+        data: {
+          items: topSchools.map((s, i) => ({
+            rank: i + 1,
+            name: s['School name'],
+            value: formatNumber(s['Student responses']),
+            subtext: 'responses',
+          })),
+          valueLabel: 'responses',
+        } as ListData,
+        followUpSuggestions: [
+          'Top schools by active teachers',
+          'Which schools have the most sessions?',
+        ],
+      };
+    },
+  },
+
+  // Top schools by active teachers
+  {
+    patterns: [
+      /top.*schools?.*active teachers?/i,
+      /schools?.*most.*active teachers?/i,
+      /which schools?.*most.*teachers?/i,
+      /schools?.*by.*teachers?/i,
+    ],
+    type: 'list',
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Active teachers'] > 0)
+        .sort((a, b) => b['Active teachers'] - a['Active teachers'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Schools by Active Teachers',
+        subtitle: 'Schools with most engaged teaching staff',
+        data: {
+          items: topSchools.map((s, i) => ({
+            rank: i + 1,
+            name: s['School name'],
+            value: s['Active teachers'],
+            subtext: `of ${s['Rostered teachers']} rostered`,
+          })),
+          valueLabel: 'teachers',
+        } as ListData,
+        followUpSuggestions: [
+          'Top schools by student responses',
+          'How many total teachers?',
+        ],
+      };
+    },
+  },
+
+  // Top schools by sessions
+  {
+    patterns: [
+      /top.*schools?.*sessions?/i,
+      /schools?.*most.*sessions?/i,
+      /which schools?.*most.*sessions?/i,
+    ],
+    type: 'list',
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Sessions'] > 0)
+        .sort((a, b) => b['Sessions'] - a['Sessions'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Schools by Sessions',
+        subtitle: 'Schools with most activity sessions',
+        data: {
+          items: topSchools.map((s, i) => ({
+            rank: i + 1,
+            name: s['School name'],
+            value: formatNumber(s['Sessions']),
+            subtext: 'sessions',
+          })),
+          valueLabel: 'sessions',
+        } as ListData,
+        followUpSuggestions: [
+          'Compare content types by sessions',
+          'Show session trend over time',
+        ],
+      };
+    },
+  },
+
+  // Schools with highest HOT question usage
+  {
+    patterns: [
+      /schools?.*HOT.*question/i,
+      /schools?.*higher.*order/i,
+      /highest.*HOT.*question/i,
+      /top.*schools?.*critical.*thinking/i,
+    ],
+    type: 'list',
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Percent rostered teachers using hot questions'] > 0)
+        .sort((a, b) => b['Percent rostered teachers using hot questions'] - a['Percent rostered teachers using hot questions'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Schools Using HOT Questions',
+        subtitle: 'Schools with highest higher-order thinking question usage',
+        data: {
+          items: topSchools.map((s, i) => ({
+            rank: i + 1,
+            name: s['School name'],
+            value: `${s['Percent rostered teachers using hot questions']}%`,
+            subtext: 'of teachers',
+          })),
+          valueLabel: 'usage',
+        } as ListData,
+        followUpSuggestions: [
+          'What question types are used?',
+          'What percentage of questions are higher-order?',
+        ],
+      };
+    },
+  },
+
+  // Schools using AI-powered resources
+  {
+    patterns: [
+      /schools?.*AI.*powered/i,
+      /schools?.*AI.*resources?/i,
+      /which schools?.*AI/i,
+      /top.*AI.*resources?/i,
+    ],
+    type: 'list',
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Percent Resources Which Are AI Powered'] > 0)
+        .sort((a, b) => b['Percent Resources Which Are AI Powered'] - a['Percent Resources Which Are AI Powered'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Schools Using AI-Powered Resources',
+        subtitle: 'Schools leveraging AI to save teacher time',
+        data: {
+          items: topSchools.map((s, i) => ({
+            rank: i + 1,
+            name: s['School name'],
+            value: `${s['Percent Resources Which Are AI Powered']}%`,
+            subtext: `${s['AI Powered Resources']} resources`,
+          })),
+          valueLabel: 'AI %',
+        } as ListData,
+        followUpSuggestions: [
+          'What is the overall AI resource usage?',
+          'Top schools by sessions',
+        ],
+      };
+    },
+  },
+
+  // Schools with highest accommodation usage
+  {
+    patterns: [
+      /schools?.*accommodations?/i,
+      /which schools?.*accommodations?/i,
+      /top.*schools?.*accommodations?/i,
+    ],
+    type: 'list',
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Students benefited from Accommodations'] > 0)
+        .sort((a, b) => b['Students benefited from Accommodations'] - a['Students benefited from Accommodations'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Schools Supporting Students with Accommodations',
+        subtitle: 'Schools providing the most student accommodations',
+        data: {
+          items: topSchools.map((s, i) => ({
+            rank: i + 1,
+            name: s['School name'],
+            value: formatNumber(s['Students benefited from Accommodations']),
+            subtext: 'students supported',
+          })),
+          valueLabel: 'students',
+        } as ListData,
+        followUpSuggestions: [
+          'What are the top accommodations used?',
+          'How many teachers use accommodations?',
+        ],
+      };
+    },
+  },
+
+  // Total student responses
+  {
+    patterns: [
+      /total.*student responses?/i,
+      /how many.*student responses?/i,
+      /student responses?.*total/i,
+    ],
+    type: 'single_stat',
+    handler: (query, data) => {
+      const total = data.schools.reduce((sum, s) => sum + s['Student responses'], 0);
+      return {
+        query,
+        type: 'single_stat',
+        title: 'Total Student Responses',
+        subtitle: 'Student engagement across all schools',
+        data: {
+          value: formatNumber(total),
+          label: 'student responses recorded',
+        } as SingleStatData,
+        followUpSuggestions: [
+          'Top schools by student responses',
+          'How many game players?',
+        ],
+      };
+    },
+  },
+
+  // Total game players
+  {
+    patterns: [
+      /game players?/i,
+      /how many.*players?/i,
+      /students?.*playing/i,
+    ],
+    type: 'single_stat',
+    handler: (query, data) => {
+      const total = data.schools.reduce((sum, s) => sum + s['game_players'], 0);
+      return {
+        query,
+        type: 'single_stat',
+        title: 'Total Game Players',
+        subtitle: 'Students engaged through game-based learning',
+        data: {
+          value: formatNumber(total),
+          label: 'students played learning games',
+        } as SingleStatData,
+        followUpSuggestions: [
+          'Total student responses',
+          'Top schools by sessions',
+        ],
+      };
+    },
+  },
+
   // Teachers using accommodations
   {
     patterns: [
       /how many teachers.*accommodations?/i,
       /teachers.*using accommodations?/i,
-      /accommodation.*teachers?/i,
+      /accommodation.*usage.*percent/i,
     ],
     type: 'single_stat',
     handler: (query, data) => ({
       query,
       type: 'single_stat',
       title: 'Teachers Using Accommodations',
-      subtitle: 'Percentage of teachers who used Wayground and enabled accommodations',
+      subtitle: 'Percentage of active teachers who enabled accommodations',
       data: {
         value: data.differentiation.accommodationUsagePercent,
         label: 'of teachers use Accommodations',
@@ -52,7 +326,7 @@ const queryPatterns: QueryPattern[] = [
     patterns: [
       /how many students.*accommodations?/i,
       /students.*supported.*accommodations?/i,
-      /accommodations?.*students?/i,
+      /students?.*benefited/i,
     ],
     type: 'single_stat',
     handler: (query, data) => ({
@@ -61,7 +335,7 @@ const queryPatterns: QueryPattern[] = [
       title: 'Students Supported',
       subtitle: 'Students receiving support through Accommodations features',
       data: {
-        value: data.differentiation.studentsSupported,
+        value: formatNumber(data.differentiation.studentsSupported),
         label: 'students supported through Accommodations',
       } as SingleStatData,
       followUpSuggestions: [
@@ -78,36 +352,37 @@ const queryPatterns: QueryPattern[] = [
       /most used accommodations?/i,
       /popular accommodations?/i,
       /accommodations? breakdown/i,
+      /what accommodations?/i,
     ],
     type: 'list',
     handler: (query, data) => ({
       query,
       type: 'list',
       title: 'Top Accommodations Used',
-      subtitle: 'Frequency of the most used Accommodations features',
+      subtitle: 'Most utilized accommodation features for student support',
       data: {
         items: data.differentiation.topAccommodations.map((acc, i) => ({
           rank: i + 1,
           name: acc.name,
-          value: acc.students,
+          value: formatNumber(acc.students),
           subtext: 'students',
         })),
         valueLabel: 'students',
       } as ListData,
       followUpSuggestions: [
         'How many students are supported through accommodations?',
-        'Compare accommodations by student count',
+        'Which schools use the most accommodations?',
       ],
     }),
   },
 
-  // Compare presentations vs assessments
+  // Compare lessons vs assessments
   {
     patterns: [
-      /compare.*presentations?.*assessments?/i,
-      /presentations?.*vs.*assessments?/i,
-      /assessments?.*vs.*presentations?/i,
-      /compare.*assessments?.*presentations?/i,
+      /compare.*lessons?.*assessments?/i,
+      /lessons?.*vs.*assessments?/i,
+      /assessments?.*vs.*lessons?/i,
+      /compare.*assessments?.*lessons?/i,
     ],
     type: 'comparison',
     handler: (query, data) => {
@@ -115,13 +390,13 @@ const queryPatterns: QueryPattern[] = [
       return {
         query,
         type: 'comparison',
-        title: `Presentations vs Assessments`,
+        title: `Lessons vs Assessments`,
         subtitle: `Comparison by ${metric}`,
         data: {
           items: [
             { 
-              name: 'Presentations', 
-              value: data.contentTypes.presentations[metric],
+              name: 'Lessons', 
+              value: data.contentTypes.lessons[metric],
               color: '#E91E8C',
             },
             { 
@@ -161,7 +436,7 @@ const queryPatterns: QueryPattern[] = [
         data: {
           items: [
             { name: 'Assessments', value: data.contentTypes.assessments[metric], color: colors[0] },
-            { name: 'Presentations', value: data.contentTypes.presentations[metric], color: colors[1] },
+            { name: 'Lessons', value: data.contentTypes.lessons[metric], color: colors[1] },
             { name: 'Videos', value: data.contentTypes.videos[metric], color: colors[2] },
             { name: 'Passages', value: data.contentTypes.passages[metric], color: colors[3] },
             { name: 'Flashcards', value: data.contentTypes.flashcards[metric], color: colors[4] },
@@ -190,36 +465,36 @@ const queryPatterns: QueryPattern[] = [
       title: 'Assessment Sessions',
       subtitle: 'Total number of assessment sessions',
       data: {
-        value: data.contentTypes.assessments.sessions,
+        value: formatNumber(data.contentTypes.assessments.sessions),
         label: 'assessment sessions',
       } as SingleStatData,
       followUpSuggestions: [
         'How many teachers use assessments?',
-        'Compare assessments vs presentations',
+        'Compare assessments vs lessons',
       ],
     }),
   },
 
-  // Presentation sessions
+  // Lesson sessions
   {
     patterns: [
-      /how many.*presentation.*sessions?/i,
-      /presentation sessions?/i,
-      /sessions?.*presentations?/i,
+      /how many.*lesson.*sessions?/i,
+      /lesson sessions?/i,
+      /sessions?.*lessons?/i,
     ],
     type: 'single_stat',
     handler: (query, data) => ({
       query,
       type: 'single_stat',
-      title: 'Presentation Sessions',
-      subtitle: 'Total number of presentation sessions',
+      title: 'Lesson Sessions',
+      subtitle: 'Total number of lesson sessions',
       data: {
-        value: data.contentTypes.presentations.sessions,
-        label: 'presentation sessions',
+        value: formatNumber(data.contentTypes.lessons.sessions),
+        label: 'lesson sessions',
       } as SingleStatData,
       followUpSuggestions: [
-        'How many teachers use presentations?',
-        'Compare presentations vs assessments',
+        'How many teachers use lessons?',
+        'Compare lessons vs assessments',
       ],
     }),
   },
@@ -236,17 +511,44 @@ const queryPatterns: QueryPattern[] = [
     handler: (query, data) => ({
       query,
       type: 'single_stat',
-      title: 'Total Teachers',
-      subtitle: 'Teachers using Wayground',
+      title: 'Total Active Teachers',
+      subtitle: 'Teachers actively using the platform',
       data: {
-        value: data.teachers.total,
-        label: 'teachers using Wayground',
+        value: formatNumber(data.teachers.total),
+        label: 'active teachers across all schools',
       } as SingleStatData,
       followUpSuggestions: [
-        'Show teachers by content type',
+        'Top schools by active teachers',
         'How many teachers use accommodations?',
       ],
     }),
+  },
+
+  // Total schools
+  {
+    patterns: [
+      /how many schools?/i,
+      /total.*schools?/i,
+      /number of schools?/i,
+    ],
+    type: 'single_stat',
+    handler: (query, data) => {
+      const activeSchools = data.schools.filter(s => s['Active teachers'] > 0).length;
+      return {
+        query,
+        type: 'single_stat',
+        title: 'Total Schools',
+        subtitle: 'Schools in the district',
+        data: {
+          value: activeSchools,
+          label: `schools with active teachers (${data.schools.length} total)`,
+        } as SingleStatData,
+        followUpSuggestions: [
+          'Top schools by student responses',
+          'Top schools by active teachers',
+        ],
+      };
+    },
   },
 
   // Curriculum alignment percentage
@@ -269,40 +571,44 @@ const queryPatterns: QueryPattern[] = [
         suffix: '%',
       } as SingleStatData,
       followUpSuggestions: [
-        'Show the top standards used',
+        'Top schools by curriculum alignment',
         'Compare content types',
       ],
     }),
   },
 
-  // Top standards
+  // Top schools by curriculum alignment
   {
     patterns: [
-      /top.*standards?/i,
-      /most.*used.*standards?/i,
-      /popular.*standards?/i,
-      /frequently.*standards?/i,
+      /top.*schools?.*curriculum/i,
+      /schools?.*curriculum.*align/i,
     ],
     type: 'list',
-    handler: (query, data) => ({
+    handler: (query, data) => {
+      const topSchools = [...data.schools]
+        .filter(s => s['Percent rostered teachers using curriculum aligned resources'] > 0 && s['Active teachers'] > 0)
+        .sort((a, b) => b['Percent rostered teachers using curriculum aligned resources'] - a['Percent rostered teachers using curriculum aligned resources'])
+        .slice(0, 10);
+      return {
       query,
       type: 'list',
-      title: 'Most Frequently Used Standards',
-      subtitle: 'Top standards by session count',
+        title: 'Top Schools by Curriculum Alignment',
+        subtitle: 'Schools with highest standards alignment',
       data: {
-        items: data.curriculumAlignment.topStandards.map((std, i) => ({
+          items: topSchools.map((s, i) => ({
           rank: i + 1,
-          name: std.code,
-          value: std.sessions,
-          subtext: 'sessions',
-        })),
-        valueLabel: 'sessions',
+            name: s['School name'],
+            value: `${s['Percent rostered teachers using curriculum aligned resources']}%`,
+            subtext: `${s['Active teachers']} active teachers`,
+          })),
+          valueLabel: 'alignment',
       } as ListData,
       followUpSuggestions: [
-        'What percentage of teachers use curriculum-aligned resources?',
-        'Show content types comparison',
+          'What percentage use curriculum-aligned resources?',
+          'Top schools by sessions',
       ],
-    }),
+      };
+    },
   },
 
   // Sessions trend
@@ -335,12 +641,39 @@ const queryPatterns: QueryPattern[] = [
     }),
   },
 
+  // Total sessions
+  {
+    patterns: [
+      /total.*sessions?/i,
+      /how many.*sessions?/i,
+    ],
+    type: 'single_stat',
+    handler: (query, data) => {
+      const total = Object.values(data.contentTypes).reduce((sum, ct) => sum + ct.sessions, 0);
+      return {
+        query,
+        type: 'single_stat',
+        title: 'Total Sessions',
+        subtitle: 'All learning sessions across the district',
+        data: {
+          value: formatNumber(total),
+          label: 'total learning sessions',
+        } as SingleStatData,
+        followUpSuggestions: [
+          'Show session trend over time',
+          'Compare content types by sessions',
+        ],
+      };
+    },
+  },
+
   // Higher order thinking
   {
     patterns: [
       /higher.*order.*thinking/i,
-      /HOT.*questions?/i,
-      /critical.*thinking/i,
+      /HOT.*questions?.*percent/i,
+      /percent.*HOT/i,
+      /critical.*thinking.*percent/i,
     ],
     type: 'single_stat',
     handler: (query, data) => ({
@@ -365,6 +698,7 @@ const queryPatterns: QueryPattern[] = [
     patterns: [
       /teachers?.*higher.*order/i,
       /teachers?.*HOT/i,
+      /percent.*teachers?.*HOT/i,
     ],
     type: 'single_stat',
     handler: (query, data) => ({
@@ -387,8 +721,9 @@ const queryPatterns: QueryPattern[] = [
   // AI powered resources
   {
     patterns: [
-      /AI.*powered/i,
-      /AI.*resources?/i,
+      /AI.*powered.*percent/i,
+      /percent.*AI.*resources?/i,
+      /overall.*AI/i,
     ],
     type: 'single_stat',
     handler: (query, data) => ({
@@ -402,7 +737,7 @@ const queryPatterns: QueryPattern[] = [
         suffix: '%',
       } as SingleStatData,
       followUpSuggestions: [
-        'Show question types breakdown',
+        'Which schools use the most AI resources?',
         'Compare content types',
       ],
     }),
@@ -414,6 +749,7 @@ const queryPatterns: QueryPattern[] = [
       /question types?/i,
       /types? of questions?/i,
       /most.*used.*questions?/i,
+      /HOT.*question.*types?/i,
     ],
     type: 'comparison',
     handler: (query, data) => ({
@@ -431,7 +767,7 @@ const queryPatterns: QueryPattern[] = [
       } as ComparisonData,
       followUpSuggestions: [
         'What percentage of questions are higher-order thinking?',
-        'Compare content types',
+        'Which schools use HOT questions most?',
       ],
     }),
   },
@@ -456,7 +792,7 @@ const queryPatterns: QueryPattern[] = [
         data: {
           items: [
             { name: 'Assessments', value: data.contentTypes.assessments.sessions, color: colors[0] },
-            { name: 'Presentations', value: data.contentTypes.presentations.sessions, color: colors[1] },
+            { name: 'Lessons', value: data.contentTypes.lessons.sessions, color: colors[1] },
             { name: 'Videos', value: data.contentTypes.videos.sessions, color: colors[2] },
             { name: 'Passages', value: data.contentTypes.passages.sessions, color: colors[3] },
             { name: 'Flashcards', value: data.contentTypes.flashcards.sessions, color: colors[4] },
@@ -480,7 +816,7 @@ const queryPatterns: QueryPattern[] = [
     ],
     type: 'distribution',
     handler: (query, data) => {
-      const colors = ['#E91E8C', '#10B981', '#F59E0B', '#3B82F6'];
+      const colors = ['#E91E8C', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6'];
       const total = data.differentiation.topAccommodations.reduce((sum, acc) => sum + acc.students, 0);
       return {
         query,
@@ -491,7 +827,7 @@ const queryPatterns: QueryPattern[] = [
           items: data.differentiation.topAccommodations.map((acc, i) => ({
             name: acc.name,
             value: acc.students,
-            color: colors[i],
+            color: colors[i % colors.length],
           })),
           total,
         } as DistributionData,
@@ -502,11 +838,229 @@ const queryPatterns: QueryPattern[] = [
       };
     },
   },
+
+  // Total questions hosted
+  {
+    patterns: [
+      /total.*questions?.*hosted/i,
+      /how many.*questions?.*hosted/i,
+      /questions?.*hosted/i,
+    ],
+    type: 'single_stat',
+    handler: (query, data) => {
+      const total = data.schools.reduce((sum, s) => sum + s['Questions hosted'], 0);
+      return {
+        query,
+        type: 'single_stat',
+        title: 'Total Questions Hosted',
+        subtitle: 'Questions used across all sessions',
+        data: {
+          value: formatNumber(total),
+          label: 'questions hosted across all schools',
+        } as SingleStatData,
+        followUpSuggestions: [
+          'What question types are used?',
+          'What percent are higher-order thinking?',
+        ],
+      };
+    },
+  },
+
+  // Resources used
+  {
+    patterns: [
+      /total.*resources?.*used/i,
+      /how many.*resources?/i,
+      /resources?.*used/i,
+    ],
+    type: 'single_stat',
+    handler: (query, data) => {
+      const total = data.schools.reduce((sum, s) => sum + s['Resources used'], 0);
+      const aiPowered = data.schools.reduce((sum, s) => sum + s['AI Powered Resources'], 0);
+      return {
+        query,
+        type: 'single_stat',
+        title: 'Total Resources Used',
+        subtitle: 'Learning resources utilized across the district',
+        data: {
+          value: formatNumber(total),
+          label: `resources used (${formatNumber(aiPowered)} AI-powered)`,
+        } as SingleStatData,
+        followUpSuggestions: [
+          'What percent are AI-powered?',
+          'Which schools use the most AI resources?',
+        ],
+      };
+    },
+  },
 ];
+
+// Helper to find a school by name (fuzzy match)
+function findSchoolByName(query: string, schools: SchoolData[]): SchoolData | null {
+  const normalizedQuery = query.toLowerCase();
+  
+  // Try exact match first
+  const exactMatch = schools.find(s => 
+    normalizedQuery.includes(s['School name'].toLowerCase())
+  );
+  if (exactMatch) return exactMatch;
+  
+  // Try partial match
+  for (const school of schools) {
+    const schoolWords = school['School name'].toLowerCase().split(/\s+/);
+    const matchCount = schoolWords.filter(word => 
+      word.length > 2 && normalizedQuery.includes(word)
+    ).length;
+    if (matchCount >= 2 || (schoolWords.length === 1 && matchCount === 1)) {
+      return school;
+    }
+  }
+  
+  return null;
+}
+
+// Handle school-specific queries
+function handleSchoolSpecificQuery(query: string, data: WaygroundData): QueryResponse | null {
+  const school = findSchoolByName(query, data.schools);
+  if (!school) return null;
+  
+  const normalizedQuery = query.toLowerCase();
+  const schoolName = school['School name'];
+  
+  // Active teachers for a specific school
+  if (normalizedQuery.includes('active teacher')) {
+    return {
+      id: generateId(),
+      query,
+      type: 'single_stat',
+      title: `Active Teachers at ${schoolName}`,
+      subtitle: `Teacher engagement at this school`,
+      data: {
+        value: school['Active teachers'],
+        label: `active teachers out of ${school['Rostered teachers']} rostered`,
+      } as SingleStatData,
+      followUpSuggestions: [
+        `How many sessions at ${schoolName}?`,
+        `Student responses at ${schoolName}`,
+        'Top schools by active teachers',
+      ],
+      timestamp: new Date(),
+    };
+  }
+  
+  // Rostered teachers for a specific school
+  if (normalizedQuery.includes('rostered teacher') || normalizedQuery.includes('total teacher')) {
+    return {
+      id: generateId(),
+      query,
+      type: 'single_stat',
+      title: `Rostered Teachers at ${schoolName}`,
+      subtitle: `Total teaching staff at this school`,
+      data: {
+        value: school['Rostered teachers'],
+        label: `rostered teachers (${school['Active teachers']} active, ${school['Logged in teachers']} logged in)`,
+      } as SingleStatData,
+      followUpSuggestions: [
+        `How many active teachers at ${schoolName}?`,
+        `Sessions at ${schoolName}`,
+        'Top schools by active teachers',
+      ],
+      timestamp: new Date(),
+    };
+  }
+  
+  // Sessions for a specific school
+  if (normalizedQuery.includes('session')) {
+    return {
+      id: generateId(),
+      query,
+      type: 'single_stat',
+      title: `Sessions at ${schoolName}`,
+      subtitle: `Learning sessions at this school`,
+      data: {
+        value: formatNumber(school['Sessions']),
+        label: `total sessions (${school['Assessment Sessions']} assessments, ${school['Lesson Sessions']} lessons)`,
+      } as SingleStatData,
+      followUpSuggestions: [
+        `Student responses at ${schoolName}`,
+        `Active teachers at ${schoolName}`,
+        'Top schools by sessions',
+      ],
+      timestamp: new Date(),
+    };
+  }
+  
+  // Student responses for a specific school
+  if (normalizedQuery.includes('student response') || normalizedQuery.includes('responses')) {
+    return {
+      id: generateId(),
+      query,
+      type: 'single_stat',
+      title: `Student Responses at ${schoolName}`,
+      subtitle: `Student engagement at this school`,
+      data: {
+        value: formatNumber(school['Student responses']),
+        label: `student responses recorded`,
+      } as SingleStatData,
+      followUpSuggestions: [
+        `Sessions at ${schoolName}`,
+        `Game players at ${schoolName}`,
+        'Top schools by student responses',
+      ],
+      timestamp: new Date(),
+    };
+  }
+  
+  // Accommodations for a specific school
+  if (normalizedQuery.includes('accommodation')) {
+    return {
+      id: generateId(),
+      query,
+      type: 'single_stat',
+      title: `Accommodations at ${schoolName}`,
+      subtitle: `Student support at this school`,
+      data: {
+        value: formatNumber(school['Students benefited from Accommodations']),
+        label: `students supported with accommodations`,
+      } as SingleStatData,
+      followUpSuggestions: [
+        `Active teachers at ${schoolName}`,
+        'Top schools by accommodations',
+        'What are the top accommodations used?',
+      ],
+      timestamp: new Date(),
+    };
+  }
+  
+  // Default school overview
+  return {
+    id: generateId(),
+    query,
+    type: 'single_stat',
+    title: `${schoolName} Overview`,
+    subtitle: `Key metrics for this school`,
+    data: {
+      value: school['Active teachers'],
+      label: `active teachers | ${formatNumber(school['Sessions'])} sessions | ${formatNumber(school['Student responses'])} responses`,
+    } as SingleStatData,
+    followUpSuggestions: [
+      `How many sessions at ${schoolName}?`,
+      `Student responses at ${schoolName}`,
+      `Accommodations at ${schoolName}`,
+    ],
+    timestamp: new Date(),
+  };
+}
 
 // Parse and process a user query
 export function processQuery(query: string, data: WaygroundData): QueryResponse | null {
   const normalizedQuery = query.trim().toLowerCase();
+  
+  // First, check for school-specific queries
+  const schoolResult = handleSchoolSpecificQuery(query, data);
+  if (schoolResult) {
+    return schoolResult;
+  }
   
   for (const pattern of queryPatterns) {
     for (const regex of pattern.patterns) {
@@ -532,11 +1086,11 @@ export function processQuery(query: string, data: WaygroundData): QueryResponse 
     subtitle: 'Try one of these example questions:',
     data: {
       value: '?',
-      label: 'Try asking about teachers, sessions, accommodations, or content types',
+      label: 'Try asking about schools, teachers, sessions, accommodations, or content types',
     } as SingleStatData,
     followUpSuggestions: [
       'How many teachers are using accommodations?',
-      'Compare presentations vs assessments',
+      'Top schools by student responses',
       'What are the top accommodations used?',
       'Show the trend of sessions over time',
     ],
@@ -548,19 +1102,21 @@ export function processQuery(query: string, data: WaygroundData): QueryResponse 
 export function getQuerySuggestions(partialQuery: string): string[] {
   const suggestions = [
     'How many teachers are using accommodations?',
-    'Compare presentations vs assessments by session count',
+    'Top schools by student responses',
+    'Which schools have the most active teachers?',
     'What are the top accommodations used?',
-    'Show me the breakdown of content types by teachers',
     'How many students are supported through accommodations?',
     'What percentage of teachers use curriculum-aligned resources?',
     'Show the trend of sessions over time',
     'What are the most used question types?',
-    'Compare all content types by number of sessions',
+    'Compare all content types by sessions',
     'How many assessment sessions were there?',
     'What percent of questions are higher-order thinking?',
-    'Show the top 5 standards used',
+    'Which schools use the most AI-powered resources?',
     'How many total teachers?',
     'Show session distribution by content type',
+    'Top schools by sessions',
+    'How many total student responses?',
   ];
   
   if (!partialQuery.trim()) {
@@ -572,4 +1128,3 @@ export function getQuerySuggestions(partialQuery: string): string[] {
     .filter(s => s.toLowerCase().includes(lowerQuery))
     .slice(0, 5);
 }
-

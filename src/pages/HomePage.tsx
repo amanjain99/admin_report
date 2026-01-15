@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Download, 
   ChevronDown, 
@@ -8,7 +9,8 @@ import {
   PlayCircle,
   FileType,
   Layers,
-  Users
+  Users,
+  LayoutDashboard
 } from 'lucide-react';
 import { QuerySidebar } from '../components/QuerySidebar';
 import { mockWaygroundData } from '../data/mockData';
@@ -104,6 +106,7 @@ function BarChartItem({ label, value, maxValue, color }: BarChartItemProps) {
 }
 
 export function HomePage() {
+  const navigate = useNavigate();
   const [mainTab, setMainTab] = useState<MainTab>('overview');
   const [subTab, setSubTab] = useState<SubTab>('differentiation');
   const data = mockWaygroundData;
@@ -172,6 +175,14 @@ export function HomePage() {
               <span className="text-sm text-gray-500">
                 Last updated: <span className="text-gray-700 font-medium">July 24, 2025</span>
               </span>
+              
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:border-[#2196F3] hover:text-[#2196F3] transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>My Dashboard</span>
+              </button>
               
               <button className="flex items-center gap-2 px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                 <Download className="w-4 h-4" />

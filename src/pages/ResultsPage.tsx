@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Download, ChevronDown, Phone, ArrowLeft, Sparkles, ArrowUp, Trash2, MessageCircle, Loader2 } from 'lucide-react';
+import { Download, ChevronDown, Phone, ArrowLeft, Sparkles, ArrowUp, Trash2, MessageCircle, Loader2, LayoutDashboard } from 'lucide-react';
 import { ResponseCard } from '../components/ResponseCard';
 import { useQuery, usePinnedQueries, useDashboard } from '../hooks';
 import { mockWaygroundData } from '../data/mockData';
@@ -86,6 +86,14 @@ export function ResultsPage() {
               <span className="text-sm text-gray-500">
                 Last updated: <span className="text-gray-700 font-medium">{mockWaygroundData.lastUpdated}</span>
               </span>
+              
+              <button 
+                onClick={() => navigate('/dashboard')}
+                className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 hover:border-[#2196F3] hover:text-[#2196F3] transition-colors"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                <span>My Dashboard</span>
+              </button>
               
               <button className="flex items-center gap-2 px-4 py-2.5 border border-gray-200 rounded-xl text-sm text-gray-700 hover:bg-gray-50 transition-colors">
                 <Download className="w-4 h-4" />

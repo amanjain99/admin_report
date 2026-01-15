@@ -1,3 +1,45 @@
+// Raw School Data from JSON
+export interface SchoolData {
+  "School name": string;
+  "Rostered teachers": number;
+  "Logged in teachers": number;
+  "Active teachers": number;
+  "Percent rostered teachers using accommodations": number;
+  "Percent rostered teachers using curriculum aligned resources": number;
+  "Percent rostered teachers using hot questions": number;
+  "Assessment teachers": number;
+  "Lesson teachers": number;
+  "Passage teachers": number;
+  "Interactive video teachers": number;
+  "Flashcard teachers": number;
+  "Student responses": number;
+  "game_players": number;
+  "Sessions": number;
+  "Assessment Sessions": number;
+  "Lesson Sessions": number;
+  "Interactive Video Sessions": number;
+  "Flashcard Sessions": number;
+  "Passage Sessions": number;
+  "Students benefited from Accommodations": number;
+  "Total Accommodations": number;
+  "Basic Accommodations": number;
+  "Question Settings Accommodations": number;
+  "Math Tools Accommodations": number;
+  "Reading Support Accommodations": number;
+  "Learning Environment Accommodations": number;
+  "Percent Questions Which Are HOT Questions": number;
+  "AI Powered Resources": number;
+  "Resources used": number;
+  "Percent Resources Which Are AI Powered": number;
+  "Questions hosted": number;
+  "HOT Match Questions": number;
+  "HOT Reorder Questions": number;
+  "HOT Math Response Questions": number;
+  "HOT Dropdown Questions": number;
+  "HOT Hotspot Questions": number;
+  "Hot graphing questions": number;
+}
+
 // Content Type Data
 export interface ContentTypeStats {
   sessions: number;
@@ -6,7 +48,7 @@ export interface ContentTypeStats {
 
 export interface ContentTypes {
   assessments: ContentTypeStats;
-  presentations: ContentTypeStats;
+  lessons: ContentTypeStats;
   videos: ContentTypeStats;
   passages: ContentTypeStats;
   flashcards: ContentTypeStats;
@@ -73,6 +115,7 @@ export interface WaygroundData {
   testPrep: TestPrepData;
   teachers: TeachersData;
   monthlyTrends: MonthlyTrend[];
+  schools: SchoolData[];
 }
 
 // Query Response Types

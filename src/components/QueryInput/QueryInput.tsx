@@ -156,7 +156,7 @@ export function QueryInput({ onSubmit, isLoading, placeholder = "Ask a question 
 
       {/* Helper text */}
       <p className="text-center text-xs text-gray-400 mt-3">
-        Press Enter to ask • Try "How many teachers use accommodations?" or "Compare presentations vs assessments"
+        Press Enter to ask • Try "Top schools by student responses" or "Compare all content types"
       </p>
     </div>
   );

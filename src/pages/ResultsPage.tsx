@@ -100,11 +100,6 @@ export function ResultsPage() {
                 <span>Export</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
-              
-              <button className="flex items-center gap-2 px-5 py-2.5 bg-[#E91E8C] text-white rounded-xl text-sm font-medium hover:bg-[#D1177D] transition-colors">
-                <Phone className="w-4 h-4" />
-                <span>Contact your success partner</span>
-              </button>
             </div>
           </div>
           
@@ -123,18 +118,8 @@ export function ResultsPage() {
 
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-8 py-8 pb-32">
-        {/* Tabs */}
-        <div className="flex items-center gap-4 mb-8">
-          <button className="px-5 py-2.5 bg-white rounded-xl text-sm font-medium text-gray-800 shadow-sm border border-gray-200">
-            Overview
-          </button>
-          <button className="px-5 py-2.5 text-sm text-gray-500 hover:text-gray-700 transition-colors">
-            Details
-          </button>
-        </div>
-
         {/* Results Area */}
-        <div className="space-y-6">
+        <div className="space-y-6" style={{ width: '800px', margin: '0 auto' }}>
           {/* Clear conversation button */}
           {conversation.length > 0 && (
             <div className="flex justify-end">
@@ -158,23 +143,25 @@ export function ResultsPage() {
                   </div>
                 </div>
               ) : message.response ? (
-                <ResponseCard
-                  response={message.response}
-                  isInCart={isInCart(message.response.id)}
-                  onAddToCart={() => addToCart(message.response!)}
-                  onRemoveFromCart={() => removeFromCart(message.response!.id)}
-                  onFollowUp={handleFollowUp}
-                  isOnDashboard={isOnDashboard(message.response.id)}
-                  onAddToDashboard={() => addToDashboard(message.response!)}
-                  onRemoveFromDashboard={() => removeFromDashboard(message.response!.id)}
-                />
+                <div style={{ width: '800px', margin: '0 auto' }}>
+                  <ResponseCard
+                    response={message.response}
+                    isInCart={isInCart(message.response.id)}
+                    onAddToCart={() => addToCart(message.response!)}
+                    onRemoveFromCart={() => removeFromCart(message.response!.id)}
+                    onFollowUp={handleFollowUp}
+                    isOnDashboard={isOnDashboard(message.response.id)}
+                    onAddToDashboard={() => addToDashboard(message.response!)}
+                    onRemoveFromDashboard={() => removeFromDashboard(message.response!.id)}
+                  />
+                </div>
               ) : null}
             </div>
           ))}
 
           {/* Loading indicator */}
           {isLoading && (
-            <div className="flex items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-gray-200">
+            <div className="flex items-center gap-3 px-6 py-4 bg-white rounded-2xl border border-gray-200" style={{ width: '800px', margin: '0 auto' }}>
               <div className="flex gap-1">
                 <div className="w-2 h-2 bg-[#E91E8C] rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
                 <div className="w-2 h-2 bg-[#E91E8C] rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />

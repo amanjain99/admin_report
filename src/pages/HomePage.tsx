@@ -189,11 +189,6 @@ export function HomePage() {
                 <span>Export</span>
                 <ChevronDown className="w-4 h-4" />
               </button>
-              
-              <button className="flex items-center gap-2 px-4 py-2 bg-[#E91E8C] text-white rounded-lg text-sm font-medium hover:bg-[#D1177D] transition-colors">
-                <Phone className="w-4 h-4" />
-                <span>Contact your success partner</span>
-              </button>
             </div>
           </div>
           

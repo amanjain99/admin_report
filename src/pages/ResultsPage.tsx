@@ -122,7 +122,7 @@ export function ResultsPage() {
       <div className="h-1 bg-gradient-to-r from-[#E91E8C] via-[#E91E8C] to-[#FF6B9D]" />
 
       {/* Main Content */}
-      <main className="max-w-6xl mx-auto px-8 py-8">
+      <main className="max-w-6xl mx-auto px-8 py-8 pb-32">
         {/* Tabs */}
         <div className="flex items-center gap-4 mb-8">
           <button className="px-5 py-2.5 bg-white rounded-xl text-sm font-medium text-gray-800 shadow-sm border border-gray-200">
@@ -133,11 +133,8 @@ export function ResultsPage() {
           </button>
         </div>
 
-        {/* Query Input - Compact version for results page */}
-        <SearchInputCompact onSubmit={handleNewQuery} isLoading={isLoading} />
-
         {/* Results Area */}
-        <div className="mt-8 space-y-6">
+        <div className="space-y-6">
           {/* Clear conversation button */}
           {conversation.length > 0 && (
             <div className="flex justify-end">
@@ -195,6 +192,11 @@ export function ResultsPage() {
           <div ref={conversationEndRef} />
         </div>
       </main>
+
+      {/* Query Input - Fixed at bottom */}
+      <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent pt-6 pb-6 px-8">
+        <SearchInputCompact onSubmit={handleNewQuery} isLoading={isLoading} />
+      </div>
     </div>
   );
 }

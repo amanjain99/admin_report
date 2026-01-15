@@ -259,6 +259,13 @@ export interface PinnedQuery {
   pinnedAt: Date;
 }
 
+// AI Query Refinement Info
+export interface RefinedQueryInfo {
+  originalQuery: string;
+  refinedQuery: string;
+  confidence: number;
+}
+
 // Conversation
 export interface ConversationMessage {
   id: string;
@@ -266,6 +273,7 @@ export interface ConversationMessage {
   content: string;
   response?: QueryResponse;
   timestamp: Date;
+  refinedQuery?: RefinedQueryInfo;
 }
 
 // Dashboard Item - stores full QueryResponse for rendering on dashboard

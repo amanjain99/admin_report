@@ -1,4 +1,4 @@
-// Raw School Data from JSON
+// Raw School Data from JSON (csvjson (3).json)
 export interface SchoolData {
   "School name": string;
   "Rostered teachers": number;
@@ -38,6 +38,62 @@ export interface SchoolData {
   "HOT Dropdown Questions": number;
   "HOT Hotspot Questions": number;
   "Hot graphing questions": number;
+}
+
+// Teacher Data from JSON (csvjson (4).json)
+export interface TeacherData {
+  "Teacher Name": string;
+  "Email": string;
+  "School name": string;
+  "Student responses": number;
+  "game_players": number;
+  "Sessions": number;
+  "Assessment Sessions": number;
+  "Lesson Sessions": number;
+  "Interactive Video Sessions": number;
+  "Flashcard Sessions": number;
+  "Passage Sessions": number;
+  "Students benefited from Accommodations": number;
+  "Total Accommodations": number;
+  "Basic Accommodations": number;
+  "Question Settings Accommodations": number;
+  "Math Tools Accommodations": number;
+  "Reading Support Accommodations": number;
+  "Learning Environment Accommodations": number;
+  "Percent Questions Which Are HOT Questions": number;
+  "AI Powered Resources": number;
+  "Resources used": number;
+  "Percent Resources Which Are AI Powered": number;
+  "Questions hosted": number;
+  "HOT Match Questions": number;
+  "HOT Reorder Questions": number;
+  "HOT Math Response Questions": number;
+  "HOT Dropdown Questions": number;
+  "HOT Hotspot Questions": number;
+  "Hot graphing questions": number;
+}
+
+// Question Type Data from JSON (csvjson (1).json)
+export interface QuestionTypeData {
+  "Question Type": string;
+  "Question Category": string;
+  "Schools": string;
+  "Number of sessions": number;
+}
+
+// Accommodation Data from JSON (csvjson (2).json)
+export interface AccommodationData {
+  "Accommodation": string;
+  "Accommodation Category": string;
+  "Schools": string;
+  "Students benefited": number;
+}
+
+// Standards Data from JSON (csvjson.json)
+export interface StandardData {
+  "Standard Code": string;
+  "Schools": string;
+  "Number of sessions": number;
 }
 
 // Content Type Data

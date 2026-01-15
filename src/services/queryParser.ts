@@ -7,8 +7,15 @@ import type {
   DistributionData,
   TrendData,
   ListData,
-  SchoolData
+  SchoolData,
+  TeacherData
 } from '../types';
+import { 
+  teachersData, 
+  questionTypesData, 
+  accommodationsData, 
+  standardsData 
+} from '../data/mockData';
 
 // Generate unique ID
 function generateId(): string {
@@ -892,6 +899,278 @@ const queryPatterns: QueryPattern[] = [
         ],
       };
     },
+  },
+
+  // Top teachers by sessions
+  {
+    patterns: [
+      /top.*teachers?.*sessions?/i,
+      /teachers?.*most.*sessions?/i,
+      /which teachers?.*most.*sessions?/i,
+    ],
+    type: 'list',
+    handler: (query) => {
+      const topTeachers = [...teachersData]
+        .filter(t => t['Sessions'] > 0)
+        .sort((a, b) => b['Sessions'] - a['Sessions'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Teachers by Sessions',
+        subtitle: 'Most active teachers by learning sessions',
+        data: {
+          items: topTeachers.map((t, i) => ({
+            rank: i + 1,
+            name: t['Teacher Name'],
+            value: formatNumber(t['Sessions']),
+            subtext: t['School name'],
+          })),
+          valueLabel: 'sessions',
+        } as ListData,
+        followUpSuggestions: [
+          'Top teachers by student responses',
+          'Top schools by sessions',
+        ],
+      };
+    },
+  },
+
+  // Top teachers by student responses
+  {
+    patterns: [
+      /top.*teachers?.*student responses?/i,
+      /teachers?.*most.*responses?/i,
+      /which teachers?.*most.*responses?/i,
+    ],
+    type: 'list',
+    handler: (query) => {
+      const topTeachers = [...teachersData]
+        .filter(t => t['Student responses'] > 0)
+        .sort((a, b) => b['Student responses'] - a['Student responses'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Teachers by Student Responses',
+        subtitle: 'Teachers with highest student engagement',
+        data: {
+          items: topTeachers.map((t, i) => ({
+            rank: i + 1,
+            name: t['Teacher Name'],
+            value: formatNumber(t['Student responses']),
+            subtext: t['School name'],
+          })),
+          valueLabel: 'responses',
+        } as ListData,
+        followUpSuggestions: [
+          'Top teachers by sessions',
+          'Top schools by student responses',
+        ],
+      };
+    },
+  },
+
+  // Top standards by sessions
+  {
+    patterns: [
+      /top.*standards?.*sessions?/i,
+      /standards?.*most.*sessions?/i,
+      /which standards?.*most/i,
+      /popular.*standards?/i,
+      /most used standards?/i,
+    ],
+    type: 'list',
+    handler: (query) => {
+      const topStandards = [...standardsData]
+        .sort((a, b) => b['Number of sessions'] - a['Number of sessions'])
+        .slice(0, 10);
+      return {
+        query,
+        type: 'list',
+        title: 'Top Standards by Usage',
+        subtitle: 'Most frequently used curriculum standards',
+        data: {
+          items: topStandards.map((s, i) => ({
+            rank: i + 1,
+            name: s['Standard Code'],
+            value: formatNumber(s['Number of sessions']),
+            subtext: `${s['Schools'].split(',').length} schools`,
+          })),
+          valueLabel: 'sessions',
+        } as ListData,
+        followUpSuggestions: [
+          'What percentage use curriculum-aligned resources?',
+          'Top schools by curriculum alignment',
+        ],
+      };
+    },
+  },
+
+  // All question types by sessions
+  {
+    patterns: [
+      /all.*question types?/i,
+      /question types?.*all/i,
+      /question types?.*by sessions?/i,
+      /breakdown.*question types?/i,
+    ],
+    type: 'comparison',
+    handler: (query) => {
+      const colors = ['#E91E8C', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+      const sortedTypes = [...questionTypesData]
+        .sort((a, b) => b['Number of sessions'] - a['Number of sessions'])
+        .slice(0, 8);
+      return {
+        query,
+        type: 'comparison',
+        title: 'Question Types by Sessions',
+        subtitle: 'All question types by usage',
+        data: {
+          items: sortedTypes.map((q, i) => ({
+            name: q['Question Type'],
+            value: q['Number of sessions'],
+            color: colors[i % colors.length],
+          })),
+          yLabel: 'Sessions',
+        } as ComparisonData,
+        followUpSuggestions: [
+          'Show question types by category',
+          'What percentage are higher-order thinking?',
+        ],
+      };
+    },
+  },
+
+  // Question types by category
+  {
+    patterns: [
+      /question.*by category/i,
+      /question category/i,
+      /question.*categories?/i,
+    ],
+    type: 'comparison',
+    handler: (query) => {
+      const categories = [...new Set(questionTypesData.map(q => q['Question Category']))];
+      const colors = ['#E91E8C', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6'];
+      const categoryData = categories.map(cat => ({
+        name: cat,
+        value: questionTypesData
+          .filter(q => q['Question Category'] === cat)
+          .reduce((sum, q) => sum + q['Number of sessions'], 0),
+      })).sort((a, b) => b.value - a.value);
+      return {
+        query,
+        type: 'comparison',
+        title: 'Question Types by Category',
+        subtitle: 'Sessions grouped by question category',
+        data: {
+          items: categoryData.map((c, i) => ({
+            ...c,
+            color: colors[i % colors.length],
+          })),
+          yLabel: 'Sessions',
+        } as ComparisonData,
+        followUpSuggestions: [
+          'Show all question types',
+          'What percentage are higher-order thinking?',
+        ],
+      };
+    },
+  },
+
+  // Accommodations by category
+  {
+    patterns: [
+      /accommodation.*categories?/i,
+      /accommodation.*by category/i,
+      /categories?.*accommodation/i,
+    ],
+    type: 'comparison',
+    handler: (query) => {
+      const categories = [...new Set(accommodationsData.map(a => a['Accommodation Category']))];
+      const colors = ['#E91E8C', '#10B981', '#F59E0B', '#3B82F6', '#8B5CF6'];
+      const categoryData = categories.map(cat => ({
+        name: cat,
+        value: accommodationsData
+          .filter(a => a['Accommodation Category'] === cat)
+          .reduce((sum, a) => sum + a['Students benefited'], 0),
+      })).sort((a, b) => b.value - a.value);
+      return {
+        query,
+        type: 'comparison',
+        title: 'Accommodations by Category',
+        subtitle: 'Students benefited grouped by accommodation category',
+        data: {
+          items: categoryData.map((c, i) => ({
+            ...c,
+            color: colors[i % colors.length],
+          })),
+          yLabel: 'Students',
+        } as ComparisonData,
+        followUpSuggestions: [
+          'What are the top accommodations?',
+          'How many students are supported?',
+        ],
+      };
+    },
+  },
+
+  // All accommodations list
+  {
+    patterns: [
+      /all.*accommodations?/i,
+      /list.*accommodations?/i,
+      /show.*all.*accommodations?/i,
+    ],
+    type: 'list',
+    handler: (query) => {
+      const sortedAccommodations = [...accommodationsData]
+        .sort((a, b) => b['Students benefited'] - a['Students benefited']);
+      return {
+        query,
+        type: 'list',
+        title: 'All Accommodations',
+        subtitle: 'Complete list of accommodations by students benefited',
+        data: {
+          items: sortedAccommodations.map((a, i) => ({
+            rank: i + 1,
+            name: a['Accommodation'],
+            value: formatNumber(a['Students benefited']),
+            subtext: a['Accommodation Category'],
+          })),
+          valueLabel: 'students',
+        } as ListData,
+        followUpSuggestions: [
+          'Show accommodations by category',
+          'How many students are supported?',
+        ],
+      };
+    },
+  },
+
+  // Total teachers count from teacher data
+  {
+    patterns: [
+      /how many individual teachers?/i,
+      /total individual teachers?/i,
+      /count.*teachers?/i,
+    ],
+    type: 'single_stat',
+    handler: (query) => ({
+      query,
+      type: 'single_stat',
+      title: 'Total Teachers',
+      subtitle: 'Individual teachers in the system',
+      data: {
+        value: formatNumber(teachersData.length),
+        label: 'teachers in the district',
+      } as SingleStatData,
+      followUpSuggestions: [
+        'Top teachers by sessions',
+        'Top teachers by student responses',
+      ],
+    }),
   },
 ];
 

@@ -1,10 +1,25 @@
-import type { WaygroundData, SchoolData } from '../types';
+import type { 
+  WaygroundData, 
+  SchoolData, 
+  TeacherData, 
+  QuestionTypeData, 
+  AccommodationData, 
+  StandardData 
+} from '../types';
 
-// Import the actual JSON data
-import rawSchoolData from '../../Wayground_usage_report_2026-01-15.json';
+// Import the actual JSON data files
+import rawSchoolData from '../../csvjson (3).json';
+import rawTeacherData from '../../csvjson (4).json';
+import rawQuestionTypeData from '../../csvjson (1).json';
+import rawAccommodationData from '../../csvjson (2).json';
+import rawStandardData from '../../csvjson.json';
 
-// Type assertion for the imported JSON
-const schoolsData: SchoolData[] = rawSchoolData as SchoolData[];
+// Type assertions for the imported JSON
+export const schoolsData: SchoolData[] = rawSchoolData as SchoolData[];
+export const teachersData: TeacherData[] = rawTeacherData as TeacherData[];
+export const questionTypesData: QuestionTypeData[] = rawQuestionTypeData as QuestionTypeData[];
+export const accommodationsData: AccommodationData[] = rawAccommodationData as AccommodationData[];
+export const standardsData: StandardData[] = rawStandardData as StandardData[];
 
 // Filter out schools with no activity for certain aggregations
 const activeSchools = schoolsData.filter(s => s['Active teachers'] > 0);
@@ -105,11 +120,42 @@ function aggregateData(schools: SchoolData[]): WaygroundData {
     ? Math.round((totals.aiPoweredResources / totals.resourcesUsed) * 100) 
     : 0;
 
-  // Get unique school names for teacher list
-  const schoolNames = schools
-    .filter(s => s['Active teachers'] > 0)
-    .map(s => s['School name'])
-    .slice(0, 50);
+  // Get top teacher names
+  const teacherNames = teachersData
+    .filter(t => t['Sessions'] > 0)
+    .sort((a, b) => b['Sessions'] - a['Sessions'])
+    .slice(0, 50)
+    .map(t => t['Teacher Name']);
+
+  // Build top accommodations from actual accommodation data
+  const topAccommodations = accommodationsData
+    .sort((a, b) => b['Students benefited'] - a['Students benefited'])
+    .slice(0, 5)
+    .map(a => ({
+      name: a['Accommodation'],
+      students: a['Students benefited'],
+    }));
+
+  // Build top standards from actual standards data
+  const topStandards = standardsData
+    .sort((a, b) => b['Number of sessions'] - a['Number of sessions'])
+    .slice(0, 5)
+    .map(s => ({
+      code: s['Standard Code'],
+      sessions: s['Number of sessions'],
+      usedBy: `${s['Schools'].split(',').length} schools`,
+    }));
+
+  // Build question types from actual question type data (HOT questions)
+  const hotQuestionTypes = questionTypesData
+    .filter(q => q['Question Category'] === 'Interactive & higher order' || q['Question Category'] === 'Math')
+    .sort((a, b) => b['Number of sessions'] - a['Number of sessions'])
+    .slice(0, 6)
+    .map(q => ({
+      type: q['Question Type'],
+      count: q['Number of sessions'],
+      icon: getQuestionTypeIcon(q['Question Type']),
+    }));
 
   return {
     lastUpdated: 'January 15, 2026',
@@ -126,48 +172,24 @@ function aggregateData(schools: SchoolData[]): WaygroundData {
     differentiation: {
       accommodationUsagePercent: Math.round(weightedAccommodationUsage),
       studentsSupported: totals.studentsWithAccommodations,
-      topAccommodations: [
-        { name: 'Basic Accommodations', students: totals.basicAccommodations },
-        { name: 'Question Settings', students: totals.questionSettingsAccommodations },
-        { name: 'Reading Support', students: totals.readingSupportAccommodations },
-        { name: 'Math Tools', students: totals.mathToolsAccommodations },
-        { name: 'Learning Environment', students: totals.learningEnvironmentAccommodations },
-      ].sort((a, b) => b.students - a.students),
+      topAccommodations,
     },
     
     curriculumAlignment: {
       teachersUsingStandardsPercent: Math.round(weightedCurriculumAlignment),
-      topStandards: [
-        // Since the JSON doesn't have standards data, we'll show top schools by curriculum alignment
-        ...activeSchools
-          .filter(s => s['Percent rostered teachers using curriculum aligned resources'] > 0)
-          .sort((a, b) => b['Percent rostered teachers using curriculum aligned resources'] - a['Percent rostered teachers using curriculum aligned resources'])
-          .slice(0, 5)
-          .map(s => ({
-            code: s['School name'],
-            sessions: s['Sessions'],
-            usedBy: `${s['Percent rostered teachers using curriculum aligned resources']}% alignment`,
-          })),
-      ],
+      topStandards,
     },
     
     testPrep: {
       higherOrderQuestionsPercent: hotQuestionsPercent,
       teachersAskingHOTPercent: Math.round(weightedHOTUsage),
       aiPoweredResourcesPercent: aiPoweredPercent,
-      questionTypes: [
-        { type: 'Match', count: totals.hotMatchQuestions, icon: '🎯' },
-        { type: 'Dropdown', count: totals.hotDropdownQuestions, icon: '📋' },
-        { type: 'Hotspot', count: totals.hotHotspotQuestions, icon: '🔥' },
-        { type: 'Math Response', count: totals.hotMathResponseQuestions, icon: 'ƒx' },
-        { type: 'Reorder', count: totals.hotReorderQuestions, icon: '📊' },
-        { type: 'Graphing', count: totals.hotGraphingQuestions, icon: '📈' },
-      ].sort((a, b) => b.count - a.count),
+      questionTypes: hotQuestionTypes,
     },
     
     teachers: {
       total: totals.activeTeachers,
-      names: schoolNames,
+      names: teacherNames,
     },
     
     // Generate monthly trends based on school count distribution
@@ -184,10 +206,29 @@ function aggregateData(schools: SchoolData[]): WaygroundData {
   };
 }
 
+// Helper function to get icon for question types
+function getQuestionTypeIcon(type: string): string {
+  const icons: Record<string, string> = {
+    'Match': '🎯',
+    'Dropdown': '📋',
+    'Hotspot': '🔥',
+    'Math response': 'ƒx',
+    'Reorder': '📊',
+    'Graphing': '📈',
+    'Drag and drop': '✋',
+    'Categorize': '📁',
+  };
+  return icons[type] || '📝';
+}
+
 export const mockWaygroundData: WaygroundData = aggregateData(schoolsData);
 
-// Export raw school data for school-specific queries
+// Export raw data lists for queries
 export const schoolsList = schoolsData;
+export const teachersList = teachersData;
+export const questionTypesList = questionTypesData;
+export const accommodationsList = accommodationsData;
+export const standardsList = standardsData;
 
 // Example queries that users might ask
 export const exampleQueries = [
@@ -203,6 +244,9 @@ export const exampleQueries = [
   'Top 10 schools by active teachers',
   'Which schools use the most AI-powered resources?',
   'Compare all content types by sessions',
+  'Top standards by sessions',
+  'Which teachers have the most sessions?',
+  'Show accommodation categories breakdown',
 ];
 
 // Get total sessions across all content types
@@ -239,4 +283,53 @@ export function getTopSchools(
       return ascending ? aVal - bVal : bVal - aVal;
     })
     .slice(0, limit);
+}
+
+// Get top teachers by a metric
+export function getTopTeachers(
+  metric: keyof TeacherData, 
+  limit: number = 10, 
+  ascending: boolean = false
+): TeacherData[] {
+  return [...teachersData]
+    .filter(t => typeof t[metric] === 'number' && (t[metric] as number) > 0)
+    .sort((a, b) => {
+      const aVal = a[metric] as number;
+      const bVal = b[metric] as number;
+      return ascending ? aVal - bVal : bVal - aVal;
+    })
+    .slice(0, limit);
+}
+
+// Get question types by category
+export function getQuestionTypesByCategory(category?: string): QuestionTypeData[] {
+  if (category) {
+    return questionTypesData.filter(q => q['Question Category'] === category);
+  }
+  return questionTypesData;
+}
+
+// Get accommodations by category
+export function getAccommodationsByCategory(category?: string): AccommodationData[] {
+  if (category) {
+    return accommodationsData.filter(a => a['Accommodation Category'] === category);
+  }
+  return accommodationsData;
+}
+
+// Get standards data
+export function getTopStandards(limit: number = 10): StandardData[] {
+  return [...standardsData]
+    .sort((a, b) => b['Number of sessions'] - a['Number of sessions'])
+    .slice(0, limit);
+}
+
+// Get total sessions from question types
+export function getTotalQuestionTypeSessions(): number {
+  return questionTypesData.reduce((sum, q) => sum + q['Number of sessions'], 0);
+}
+
+// Get total students benefited from accommodations
+export function getTotalStudentsBenefitedFromAccommodations(): number {
+  return accommodationsData.reduce((sum, a) => sum + a['Students benefited'], 0);
 }

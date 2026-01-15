@@ -283,3 +283,10 @@ export interface DashboardItem {
   addedAt: Date;
 }
 
+// Cart Item - stores full QueryResponse for export cart
+export interface CartItem {
+  id: string;
+  response: QueryResponse;
+  addedAt: Date;
+}
+

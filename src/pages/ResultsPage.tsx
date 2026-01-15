@@ -1,8 +1,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Download, ChevronDown, Phone, ArrowLeft, Sparkles, ArrowUp, Trash2, MessageCircle, Loader2, LayoutDashboard } from 'lucide-react';
+import { Download, ChevronDown, Phone, ArrowLeft, Sparkles, ArrowUp, Trash2, MessageCircle, Loader2, LayoutDashboard, FileDown } from 'lucide-react';
 import { ResponseCard } from '../components/ResponseCard';
-import { useQuery, usePinnedQueries, useDashboard } from '../hooks';
+import { useQuery, useDashboard, useCart } from '../hooks';
 import { mockWaygroundData } from '../data/mockData';
 
 interface FilterDropdownProps {
@@ -27,8 +27,8 @@ export function ResultsPage() {
   const navigate = useNavigate();
   const initialQuery = searchParams.get('q') || '';
   const { isLoading, conversation, submitQuery, clearConversation } = useQuery();
-  const { pinnedQueries, pinQuery, unpinQuery, isPinned } = usePinnedQueries();
   const { addToDashboard, removeFromDashboard, isOnDashboard } = useDashboard();
+  const { addToCart, removeFromCart, isInCart, cartCount } = useCart();
   const conversationEndRef = useRef<HTMLDivElement>(null);
   const hasSubmittedInitial = useRef(false);
 
@@ -160,14 +160,9 @@ export function ResultsPage() {
               ) : message.response ? (
                 <ResponseCard
                   response={message.response}
-                  isPinned={isPinned(message.response.query)}
-                  onPin={() => pinQuery(message.response!)}
-                  onUnpin={() => {
-                    const pinned = pinnedQueries.find(
-                      p => p.query.toLowerCase() === message.response?.query.toLowerCase()
-                    );
-                    if (pinned) unpinQuery(pinned.id);
-                  }}
+                  isInCart={isInCart(message.response.id)}
+                  onAddToCart={() => addToCart(message.response!)}
+                  onRemoveFromCart={() => removeFromCart(message.response!.id)}
                   onFollowUp={handleFollowUp}
                   isOnDashboard={isOnDashboard(message.response.id)}
                   onAddToDashboard={() => addToDashboard(message.response!)}
@@ -195,14 +190,26 @@ export function ResultsPage() {
 
       {/* Query Input - Fixed at bottom */}
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-t from-[#F9FAFB] via-[#F9FAFB] to-transparent pt-6 pb-6 px-8">
-        <SearchInputCompact onSubmit={handleNewQuery} isLoading={isLoading} />
+        <SearchInputCompact 
+          onSubmit={handleNewQuery} 
+          isLoading={isLoading} 
+          cartCount={cartCount}
+          onCartClick={() => navigate('/cart')}
+        />
       </div>
     </div>
   );
 }
 
 // Compact search input for results page
-function SearchInputCompact({ onSubmit, isLoading }: { onSubmit: (query: string) => void; isLoading: boolean }) {
+interface SearchInputCompactProps {
+  onSubmit: (query: string) => void;
+  isLoading: boolean;
+  cartCount: number;
+  onCartClick: () => void;
+}
+
+function SearchInputCompact({ onSubmit, isLoading, cartCount, onCartClick }: SearchInputCompactProps) {
   const [query, setQuery] = useState('');
 
   const handleSubmit = () => {
@@ -219,8 +226,8 @@ function SearchInputCompact({ onSubmit, isLoading }: { onSubmit: (query: string)
   };
 
   return (
-    <div className="relative max-w-3xl mx-auto">
-      <div className="relative bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-200 overflow-hidden transition-all hover:shadow-xl hover:border-gray-300 focus-within:shadow-xl focus-within:border-[#E91E8C]/30 focus-within:ring-4 focus-within:ring-[#E91E8C]/10">
+    <div className="relative max-w-3xl mx-auto flex items-center gap-3">
+      <div className="flex-1 relative bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-200 overflow-hidden transition-all hover:shadow-xl hover:border-gray-300 focus-within:shadow-xl focus-within:border-[#E91E8C]/30 focus-within:ring-4 focus-within:ring-[#E91E8C]/10">
         <div className="flex items-center gap-3 px-5 py-4">
           <div className="flex-shrink-0">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#E91E8C] to-[#FF6B9D] flex items-center justify-center">
@@ -255,6 +262,20 @@ function SearchInputCompact({ onSubmit, isLoading }: { onSubmit: (query: string)
           </button>
         </div>
       </div>
+
+      {/* Export button */}
+      <button
+        onClick={onCartClick}
+        className="relative flex-shrink-0 w-14 h-14 bg-white rounded-2xl shadow-lg shadow-gray-200/50 border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-emerald-50 hover:border-emerald-400 hover:text-emerald-600 transition-all hover:shadow-xl"
+        title="View Export List"
+      >
+        <FileDown className="w-6 h-6" />
+        {cartCount > 0 && (
+          <span className="absolute -top-1.5 -right-1.5 min-w-[22px] h-[22px] px-1.5 bg-emerald-500 text-white text-xs font-bold rounded-full flex items-center justify-center shadow-sm">
+            {cartCount}
+          </span>
+        )}
+      </button>
     </div>
   );
 }

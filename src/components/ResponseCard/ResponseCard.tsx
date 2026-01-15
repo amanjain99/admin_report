@@ -1,12 +1,12 @@
-import { Pin, PinOff, MessageCircle, LayoutDashboard } from 'lucide-react';
+import { Download, Check, MessageCircle, LayoutDashboard } from 'lucide-react';
 import type { QueryResponse, SingleStatData, ComparisonData, DistributionData, TrendData, ListData } from '../../types';
 import { SingleStat, BarChartViz, PieChartViz, LineChartViz, RankedList } from '../Visualizations';
 
 interface ResponseCardProps {
   response: QueryResponse;
-  isPinned: boolean;
-  onPin: () => void;
-  onUnpin: () => void;
+  isInCart: boolean;
+  onAddToCart: () => void;
+  onRemoveFromCart: () => void;
   onFollowUp: (query: string) => void;
   isOnDashboard?: boolean;
   onAddToDashboard?: () => void;
@@ -15,9 +15,9 @@ interface ResponseCardProps {
 
 export function ResponseCard({ 
   response, 
-  isPinned, 
-  onPin, 
-  onUnpin, 
+  isInCart, 
+  onAddToCart, 
+  onRemoveFromCart, 
   onFollowUp,
   isOnDashboard = false,
   onAddToDashboard,
@@ -70,17 +70,18 @@ export function ResponseCard({
             </button>
           )}
 
-          {/* Pin button */}
+          {/* Add to Export button */}
           <button
-            onClick={isPinned ? onUnpin : onPin}
-            className={`flex-shrink-0 p-2 rounded-lg transition-colors ${
-              isPinned
-                ? 'bg-[#FCE4F2] text-[#E91E8C] hover:bg-[#F9D5E8]'
-                : 'text-gray-400 hover:text-gray-600 hover:bg-gray-100'
+            onClick={isInCart ? onRemoveFromCart : onAddToCart}
+            className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
+              isInCart
+                ? 'bg-emerald-100 text-emerald-600 hover:bg-emerald-200'
+                : 'text-gray-500 hover:text-emerald-600 hover:bg-emerald-50'
             }`}
-            title={isPinned ? 'Unpin this query' : 'Pin this query'}
+            title={isInCart ? 'Remove from export' : 'Add to export'}
           >
-            {isPinned ? <PinOff className="w-5 h-5" /> : <Pin className="w-5 h-5" />}
+            {isInCart ? <Check className="w-4 h-4" /> : <Download className="w-4 h-4" />}
+            <span>{isInCart ? 'Added' : 'Add to Export'}</span>
           </button>
         </div>
       </div>
